@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07111f">
+  <meta name="description" content="Pixel Vault — plataforma web de jogos clássicos originais, jogáveis diretamente no browser.">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Pixel Vault — Jogos que nunca morrem</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/icon-192.png">
+  <link rel="stylesheet" href="./assets/css/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Navegação principal">
+      <a class="brand" href="#inicio" aria-label="Pixel Vault - Início">
+        <span class="brand-mark" aria-hidden="true">PV</span>
+        <span><strong>PIXEL VAULT</strong><small>JOGOS QUE NUNCA MORREM</small></span>
+      </a>
+
+      <nav class="nav-list">
+        <a class="nav-item active" href="#inicio" data-nav="inicio">⌂ <span>Início</span></a>
+        <a class="nav-item" href="#biblioteca" data-nav="biblioteca">▦ <span>Biblioteca</span></a>
+        <button class="nav-item" type="button" id="favoritesNav">♥ <span>Favoritos</span></button>
+        <button class="nav-item" type="button" id="recentNav">◷ <span>Últimos jogados</span></button>
+        <a class="nav-item" href="#sobre" data-nav="sobre">ⓘ <span>Sobre</span></a>
+      </nav>
+
+      <div class="sidebar-card">
+        <span class="eyebrow">MODO</span>
+        <strong>PASSADO<br>SEMPRE ONLINE</strong>
+        <small>Sem ROMs. Jogos originais em HTML5 Canvas.</small>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <button id="menuButton" class="icon-button menu-button" type="button" aria-label="Abrir menu" aria-expanded="false">☰</button>
+        <div class="category-tabs" aria-label="Categorias">
+          <button class="tab active" type="button" data-category="all">Todos</button>
+          <button class="tab" type="button" data-category="arcade">Arcade</button>
+          <button class="tab" type="button" data-category="action">Ação</button>
+          <button class="tab" type="button" data-category="puzzle">Puzzle</button>
+          <button class="tab" type="button" data-category="sports">Desporto</button>
+        </div>
+        <label class="search-wrap">
+          <span class="sr-only">Pesquisar jogos</span>
+          <input id="searchInput" type="search" autocomplete="off" maxlength="48" placeholder="Pesquisar jogos…">
+          <span aria-hidden="true">⌕</span>
+        </label>
+      </header>
+
+      <section id="inicio" class="hero panel" aria-labelledby="heroTitle">
+        <div class="hero-grid"></div>
+        <div class="hero-copy">
+          <span class="eyebrow">PIXEL VAULT ORIGINAL</span>
+          <h1 id="heroTitle">CLÁSSICOS.<br><span>SEM FIM.</span></h1>
+          <p>Uma plataforma retro moderna para jogar diretamente no browser — rápida, responsiva e pronta para crescer.</p>
+          <button class="primary-button" type="button" data-play="snake">JOGAR AGORA ▶</button>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="pixel-sun"></div>
+          <div class="mountain mountain-a"></div>
+          <div class="mountain mountain-b"></div>
+          <div class="scanlines"></div>
+        </div>
+      </section>
+
+      <section id="biblioteca" class="section-block" aria-labelledby="libraryTitle">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">COLEÇÃO</span>
+            <h2 id="libraryTitle">Jogos em destaque</h2>
+          </div>
+          <span id="resultCount" class="result-count" aria-live="polite"></span>
+        </div>
+        <div id="gameGrid" class="game-grid"></div>
+        <p id="emptyState" class="empty-state" hidden>Nenhum jogo corresponde aos filtros atuais.</p>
+      </section>
+
+      <section id="sobre" class="about panel" aria-labelledby="aboutTitle">
+        <div>
+          <span class="eyebrow">PLATAFORMA</span>
+          <h2 id="aboutTitle">Feita para evoluir</h2>
+        </div>
+        <div class="about-grid">
+          <article><strong>01</strong><h3>Sem instalações</h3><p>Abre a página, escolhe um jogo e começa a jogar.</p></article>
+          <article><strong>02</strong><h3>Modular</h3><p>Cada jogo vive num módulo independente e pode ser acrescentado ao catálogo.</p></article>
+          <article><strong>03</strong><h3>GitHub Pages</h3><p>Sem servidor, sem base de dados obrigatória e sem custos de backend na V0.1.</p></article>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span>PIXEL VAULT V0.1.0</span>
+        <span>JOGA · COLECIONA · VOLTA</span>
+      </footer>
+    </main>
+  </div>
+
+  <dialog id="gameDialog" class="game-dialog" aria-labelledby="gameTitle">
+    <div class="game-dialog-shell">
+      <header class="game-toolbar">
+        <div>
+          <span id="gameCategory" class="eyebrow"></span>
+          <h2 id="gameTitle">Jogo</h2>
+        </div>
+        <div class="game-actions">
+          <button id="restartButton" class="secondary-button" type="button">Reiniciar</button>
+          <button id="closeGameButton" class="icon-button" type="button" aria-label="Fechar jogo">✕</button>
+        </div>
+      </header>
+      <div class="game-stage-wrap">
+        <div class="hud" aria-live="polite">
+          <span>PONTOS <strong id="scoreValue">0</strong></span>
+          <span>RECORDE <strong id="bestValue">0</strong></span>
+          <span id="statusValue">PRONTO</span>
+        </div>
+        <canvas id="gameCanvas" class="game-canvas" width="960" height="540" tabindex="0" aria-label="Área de jogo"></canvas>
+        <div id="touchControls" class="touch-controls" aria-label="Controlos táteis">
+          <div class="dpad">
+            <button type="button" data-key="ArrowUp" aria-label="Cima">▲</button>
+            <button type="button" data-key="ArrowLeft" aria-label="Esquerda">◀</button>
+            <button type="button" data-key="ArrowDown" aria-label="Baixo">▼</button>
+            <button type="button" data-key="ArrowRight" aria-label="Direita">▶</button>
+          </div>
+          <button type="button" class="action-button" data-key="Space" aria-label="Ação">A</button>
+        </div>
+      </div>
+      <footer class="game-help">
+        <p id="gameHelp"></p>
+        <button id="favoriteButton" class="favorite-button" type="button" aria-pressed="false">♡ Adicionar aos favoritos</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <template id="gameCardTemplate">
+    <article class="game-card">
+      <button class="game-cover" type="button">
+        <span class="cover-icon" aria-hidden="true"></span>
+        <span class="play-chip">JOGAR ▶</span>
+      </button>
+      <div class="game-card-body">
+        <div>
+          <h3></h3>
+          <p></p>
+        </div>
+        <button class="card-favorite" type="button" aria-label="Adicionar aos favoritos" aria-pressed="false">♡</button>
+      </div>
+    </article>
+  </template>
+
+  <script type="module" src="./assets/js/app.js"></script>
+</body>
+</html>
