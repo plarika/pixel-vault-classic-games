@@ -150,3 +150,36 @@ h2 { margin:.2rem 0 0; font-size:1.8rem; }
   .footer { flex-direction:column; }
   .category-tabs { max-width:55vw; }
 }
+
+
+.runtime-badge { display:inline-block; margin-top:7px; padding:3px 7px; border:1px solid #244b6a; border-radius:999px; color:#7fb9dd; font-size:.62rem; font-weight:800; letter-spacing:.08em; }
+.compact { margin-top:0; padding:10px 14px; }
+.player-page { min-height:100vh; background:radial-gradient(circle at 50% -20%,rgba(43,127,255,.2),transparent 42%),var(--bg); }
+.player-shell { width:min(1500px,100%); min-height:100vh; margin:auto; padding:20px; display:grid; grid-template-rows:auto 1fr; gap:16px; }
+.player-toolbar { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:20px; padding:16px 18px; }
+.player-heading { min-width:0; }
+.player-heading h1 { margin:3px 0 0; font-size:1.45rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.player-back { display:inline-flex; align-items:center; }
+.player-panel { min-height:0; padding:0; overflow:hidden; display:grid; grid-template-rows:auto minmax(0,1fr) auto; }
+.player-statusbar { display:flex; justify-content:space-between; gap:20px; padding:10px 16px; border-bottom:1px solid var(--line); color:#89a9c0; font-size:.7rem; letter-spacing:.11em; }
+.web-game-stage { min-height:420px; background:#02060c; display:grid; place-items:center; }
+.web-game-stage:fullscreen { width:100vw; height:100vh; background:#000; }
+.web-game-frame { width:100%; height:100%; min-height:clamp(420px,72vh,900px); border:0; background:#000; }
+.player-help { padding:13px 16px; border-top:1px solid var(--line); background:#071321; color:var(--muted); }
+.player-help p { margin:0; }
+.player-error { margin:20px; padding:18px; border:1px solid #7d3542; border-radius:12px; background:#251019; color:#ffb7c1; }
+@media (max-width:900px) {
+  .player-shell { padding:10px; }
+  .player-toolbar { grid-template-columns:1fr auto; }
+  .player-heading { grid-column:1 / -1; grid-row:1; }
+  .player-back { grid-column:1; grid-row:2; width:max-content; }
+  .player-toolbar .game-actions { grid-column:2; grid-row:2; }
+}
+@media (max-width:650px) {
+  .player-toolbar { display:flex; align-items:stretch; flex-direction:column; }
+  .player-toolbar .game-actions { display:grid; grid-template-columns:1fr 1fr; }
+  .player-toolbar .game-actions .primary-button { grid-column:1 / -1; }
+  .player-back { width:100%; justify-content:center; }
+  .player-statusbar { flex-direction:column; gap:5px; }
+  .web-game-frame { min-height:65vh; }
+}

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07111f">
+  <meta name="description" content="Launcher Pixel Vault para jogos 3D Web.">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; frame-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Jogo — Pixel Vault</title>
+  <link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/icon-192.png">
+  <link rel="stylesheet" href="./assets/css/styles.css">
+</head>
+<body class="player-page">
+  <main class="player-shell">
+    <header class="player-toolbar panel">
+      <a class="secondary-button player-back" href="./">← Voltar à biblioteca</a>
+      <div class="player-heading">
+        <span id="playerMeta" class="eyebrow">PIXEL VAULT 3D</span>
+        <h1 id="playerTitle">Jogo</h1>
+      </div>
+      <div class="game-actions">
+        <button id="playerFavorite" class="secondary-button" type="button" aria-pressed="false">♡ Favorito</button>
+        <button id="reloadGame" class="secondary-button" type="button">Reiniciar</button>
+        <button id="fullscreenGame" class="primary-button compact" type="button">Ecrã inteiro</button>
+      </div>
+    </header>
+
+    <section class="player-panel panel" aria-labelledby="playerTitle">
+      <div class="player-statusbar">
+        <span id="playerStatus">PRONTO</span>
+        <span>GODOT WEB · SAME-ORIGIN</span>
+      </div>
+      <div id="webGameStage" class="web-game-stage">
+        <iframe id="gameFrame" class="web-game-frame" title="Jogo 3D" referrerpolicy="no-referrer" allow="autoplay; fullscreen" allowfullscreen></iframe>
+      </div>
+      <p id="playerError" class="player-error" hidden></p>
+      <footer class="player-help"><p id="playerHelp"></p></footer>
+    </section>
+  </main>
+  <script type="module" src="./assets/js/player.js"></script>
+</body>
+</html>

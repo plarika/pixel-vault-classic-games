@@ -31,7 +31,7 @@
       <div class="sidebar-card">
         <span class="eyebrow">MODO</span>
         <strong>PASSADO<br>SEMPRE ONLINE</strong>
-        <small>Sem ROMs. Jogos originais em HTML5 Canvas.</small>
+        <small>Sem ROMs. Jogos originais em Canvas e Godot Web.</small>
       </div>
     </aside>
 
@@ -57,7 +57,7 @@
         <div class="hero-copy">
           <span class="eyebrow">PIXEL VAULT ORIGINAL</span>
           <h1 id="heroTitle">CLÁSSICOS.<br><span>SEM FIM.</span></h1>
-          <p>Uma plataforma retro moderna para jogar diretamente no browser — rápida, responsiva e pronta para crescer.</p>
+          <p>Uma plataforma retro moderna para jogos 2D e 3D, jogáveis diretamente no browser e pronta para receber novas builds Web.</p>
           <button class="primary-button" type="button" data-play="snake">JOGAR AGORA ▶</button>
         </div>
         <div class="hero-art" aria-hidden="true">
@@ -87,13 +87,13 @@
         </div>
         <div class="about-grid">
           <article><strong>01</strong><h3>Sem instalações</h3><p>Abre a página, escolhe um jogo e começa a jogar.</p></article>
-          <article><strong>02</strong><h3>Modular</h3><p>Cada jogo vive num módulo independente e pode ser acrescentado ao catálogo.</p></article>
-          <article><strong>03</strong><h3>GitHub Pages</h3><p>Sem servidor, sem base de dados obrigatória e sem custos de backend na V0.1.</p></article>
+          <article><strong>02</strong><h3>2D + 3D</h3><p>O Game Registry V2 suporta módulos Canvas e builds Godot Web isoladas por jogo.</p></article>
+          <article><strong>03</strong><h3>GitHub Pages</h3><p>Deploy automático, launcher 3D dedicado e sem backend obrigatório.</p></article>
         </div>
       </section>
 
       <footer class="footer">
-        <span>PIXEL VAULT V0.1.0</span>
+        <span>PIXEL VAULT V0.2.0</span>
         <span>JOGA · COLECIONA · VOLTA</span>
       </footer>
     </main>
@@ -144,7 +144,8 @@
       <div class="game-card-body">
         <div>
           <h3></h3>
-          <p></p>
+          <p class="game-meta"></p>
+          <span class="runtime-badge"></span>
         </div>
         <button class="card-favorite" type="button" aria-label="Adicionar aos favoritos" aria-pressed="false">♡</button>
       </div>

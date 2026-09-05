@@ -7,7 +7,7 @@ const dist = join(root, 'dist');
 await rm(dist, { recursive: true, force: true });
 await mkdir(dist, { recursive: true });
 
-for (const item of ['index.html', 'manifest.webmanifest', 'sw.js', 'assets']) {
+for (const item of ['index.html', 'play.html', 'manifest.webmanifest', 'sw.js', 'assets', 'games-web']) {
   await cp(join(root, item), join(dist, item), { recursive: true });
 }
-console.log('BUILD_OK: dist/ preparado para GitHub Pages.');
+console.log('BUILD_OK: dist/ preparado para GitHub Pages com suporte a jogos 3D Web.');

@@ -1,14 +1,24 @@
 {
   "name": "Pixel Vault — Jogos Clássicos",
   "short_name": "Pixel Vault",
-  "description": "Plataforma web de jogos clássicos originais, jogáveis no browser.",
+  "description": "Plataforma web de jogos clássicos 2D e 3D, jogáveis diretamente no browser.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#030913",
   "theme_color": "#07111f",
   "icons": [
-    {"src":"./assets/icons/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
-    {"src":"./assets/icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+    {
+      "src": "./assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }

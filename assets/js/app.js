@@ -1,4 +1,4 @@
-import { games, findGame, validateCatalog } from './catalog.js';
+import { games, findGame, getPlayerUrl, isCanvasGame, isGodotWebGame, validateCatalog } from './catalog.js';
 import { GameHost } from './core/game-host.js';
 import { getBestScore, getFavorites, getRecent, isFavorite, recordPlayed, saveBestScore, toggleFavorite } from './core/storage.js';
 
@@ -46,8 +46,14 @@ function filteredGames() {
     list = list.filter((game) => order.has(game.id)).sort((a, b) => order.get(a.id) - order.get(b.id));
   }
   if (state.category !== 'all') list = list.filter((game) => game.category === state.category);
-  if (query) list = list.filter((game) => `${game.title} ${game.category} ${game.year}`.toLocaleLowerCase('pt-PT').includes(query));
+  if (query) {
+    list = list.filter((game) => `${game.title} ${game.category} ${game.year} ${game.engine} ${game.runtime}`.toLocaleLowerCase('pt-PT').includes(query));
+  }
   return list;
+}
+
+function runtimeLabel(game) {
+  return isGodotWebGame(game) ? '3D · GODOT WEB' : '2D · CANVAS';
 }
 
 function renderGames() {
@@ -59,7 +65,8 @@ function renderGames() {
     const cover = fragment.querySelector('.game-cover');
     const icon = fragment.querySelector('.cover-icon');
     const title = fragment.querySelector('h3');
-    const meta = fragment.querySelector('p');
+    const meta = fragment.querySelector('.game-meta');
+    const runtime = fragment.querySelector('.runtime-badge');
     const favorite = fragment.querySelector('.card-favorite');
     card.dataset.gameId = game.id;
     cover.style.setProperty('--cover-a', game.colors[0]);
@@ -67,6 +74,7 @@ function renderGames() {
     icon.textContent = game.icon;
     title.textContent = game.title;
     meta.textContent = `${game.category} · ${game.year}`;
+    runtime.textContent = runtimeLabel(game);
     cover.setAttribute('aria-label', `Jogar ${game.title}`);
     cover.addEventListener('click', () => launchGame(game.id));
     setFavoriteButton(favorite, game.id);
@@ -92,16 +100,24 @@ function setFavoriteButton(button, gameId) {
 async function launchGame(id) {
   const game = findGame(id);
   if (!game) return;
+  recordPlayed(game.id);
+
+  if (isGodotWebGame(game)) {
+    const target = getPlayerUrl(game);
+    if (target) window.location.assign(target);
+    return;
+  }
+  if (!isCanvasGame(game)) return;
+
   state.activeGame = game;
   ui.title.textContent = game.title;
-  ui.category.textContent = `${game.category.toUpperCase()} · ${game.year}`;
+  ui.category.textContent = `${game.category.toUpperCase()} · ${game.year} · ${game.engine.toUpperCase()}`;
   ui.help.textContent = game.help;
   ui.score.textContent = '0';
   ui.best.textContent = String(getBestScore(game.id));
   ui.status.textContent = 'A CARREGAR';
   syncDialogFavorite();
   if (!ui.dialog.open) ui.dialog.showModal();
-  recordPlayed(game.id);
   try {
     const moduleUrl = new URL(game.module, import.meta.url).href;
     await host.load(moduleUrl, game.id);
@@ -163,3 +179,5 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
 }
 
 renderGames();
+const requestedGame = new URLSearchParams(location.search).get('play');
+if (requestedGame && /^[a-z0-9-]+$/.test(requestedGame)) launchGame(requestedGame);
