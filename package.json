@@ -1,13 +1,15 @@
 {
   "name": "pixel-vault-classic-games",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Plataforma web estática de jogos clássicos 2D e 3D, com suporte a Godot Web e GitHub Pages.",
+  "description": "Plataforma web estática de jogos clássicos 2D e 3D, endurecida para GitHub Pages.",
   "scripts": {
     "check": "node scripts/check.mjs",
+    "security": "node scripts/security-check.mjs",
     "test": "node --test",
-    "build": "node scripts/check.mjs && node scripts/build.mjs",
+    "build": "node scripts/check.mjs && node scripts/security-check.mjs && node scripts/build.mjs",
+    "verify": "npm test && npm run build",
     "serve": "node scripts/serve.mjs"
   },
   "engines": {

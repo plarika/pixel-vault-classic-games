@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#07111f">
   <meta name="description" content="Launcher Pixel Vault para jogos 3D Web.">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; frame-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; frame-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <title>Jogo — Pixel Vault</title>
   <link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/icon-192.png">
   <link rel="stylesheet" href="./assets/css/styles.css">
@@ -28,11 +28,11 @@
 
     <section class="player-panel panel" aria-labelledby="playerTitle">
       <div class="player-statusbar">
-        <span id="playerStatus">PRONTO</span>
+        <span id="playerStatus" aria-live="polite">PRONTO</span>
         <span>GODOT WEB · SAME-ORIGIN</span>
       </div>
       <div id="webGameStage" class="web-game-stage">
-        <iframe id="gameFrame" class="web-game-frame" title="Jogo 3D" referrerpolicy="no-referrer" allow="autoplay; fullscreen" allowfullscreen></iframe>
+        <iframe id="gameFrame" class="web-game-frame" title="Jogo 3D" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-pointer-lock" allow="autoplay; fullscreen; gamepad" allowfullscreen></iframe>
       </div>
       <p id="playerError" class="player-error" hidden></p>
       <footer class="player-help"><p id="playerHelp"></p></footer>

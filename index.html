@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#07111f">
   <meta name="description" content="Pixel Vault — plataforma web de jogos clássicos originais, jogáveis diretamente no browser.">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; manifest-src 'self'; worker-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <title>Pixel Vault — Jogos que nunca morrem</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/icon-192.png">
@@ -93,13 +93,13 @@
       </section>
 
       <footer class="footer">
-        <span>PIXEL VAULT V0.2.0</span>
+        <span>PIXEL VAULT V1.0.0</span>
         <span>JOGA · COLECIONA · VOLTA</span>
       </footer>
     </main>
   </div>
 
-  <dialog id="gameDialog" class="game-dialog" aria-labelledby="gameTitle">
+  <dialog id="gameDialog" class="game-dialog" aria-labelledby="gameTitle" aria-busy="false">
     <div class="game-dialog-shell">
       <header class="game-toolbar">
         <div>

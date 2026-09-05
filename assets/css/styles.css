@@ -183,3 +183,23 @@ h2 { margin:.2rem 0 0; font-size:1.8rem; }
   .player-statusbar { flex-direction:column; gap:5px; }
   .web-game-frame { min-height:65vh; }
 }
+
+/* V1.0 accessibility and resilient interaction */
+button:disabled { opacity: .5; cursor: not-allowed; }
+[aria-busy="true"] .game-canvas { opacity: .72; }
+.player-statusbar [aria-live="polite"] { min-width: 8rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root { --line: #4f7598; --muted: #b6c8d8; }
+  .game-card, .panel, .game-canvas { border-width: 2px; }
+}

@@ -31,7 +31,8 @@ const host = new GameHost(ui.canvas, {
     const best = saveBestScore(state.activeGame.id, value);
     ui.best.textContent = String(best);
   },
-  onStatus: (value) => { ui.status.textContent = value; }
+  onStatus: (value) => { ui.status.textContent = value; },
+  onError: () => { ui.dialog.setAttribute('aria-busy', 'false'); }
 });
 
 function filteredGames() {
@@ -116,14 +117,17 @@ async function launchGame(id) {
   ui.score.textContent = '0';
   ui.best.textContent = String(getBestScore(game.id));
   ui.status.textContent = 'A CARREGAR';
+  ui.dialog.setAttribute('aria-busy', 'true');
   syncDialogFavorite();
   if (!ui.dialog.open) ui.dialog.showModal();
   try {
     const moduleUrl = new URL(game.module, import.meta.url).href;
     await host.load(moduleUrl, game.id);
+    ui.dialog.setAttribute('aria-busy', 'false');
     ui.canvas.focus();
   } catch (error) {
     console.error(error);
+    ui.dialog.setAttribute('aria-busy', 'false');
     ui.status.textContent = 'ERRO AO CARREGAR';
   }
 }
@@ -175,7 +179,7 @@ window.addEventListener('focus', () => { if (ui.dialog.open) host.pause(false); 
 document.addEventListener('visibilitychange', () => host.pause(document.hidden));
 
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-  navigator.serviceWorker.register('./sw.js').catch((error) => console.warn('Service Worker indisponível:', error));
+  navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).catch((error) => console.warn('Service Worker indisponível:', error));
 }
 
 renderGames();

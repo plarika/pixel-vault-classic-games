@@ -1,132 +1,91 @@
 # Pixel Vault — Jogos que nunca morrem
 
-Pixel Vault é uma plataforma web estática para jogos clássicos 2D e 3D, desenhada para funcionar diretamente no browser e ser publicada no GitHub Pages.
+Pixel Vault V1.0.0 é uma plataforma web estática para jogos clássicos 2D e 3D, publicada em GitHub Pages e desenhada para execução direta no browser.
 
-## V0.2.0
+## V1.0.0
 
-A V0.2 introduz o **Game Registry V2** e o primeiro contrato de integração para jogos 3D exportados para Web.
+Inclui quatro jogos Canvas jogáveis:
 
-### Jogos incluídos
+- **Neon Snake**
+- **Vector Pong**
+- **Neon Breaker**
+- **Star Defender**
 
-- **Neon Snake** — arcade de grelha.
-- **Vector Pong** — jogador contra IA.
-- **Neon Breaker** — destruição de blocos.
-- **Star Defender** — shooter arcade original.
+E está preparada para receber builds 3D Godot Web através do Game Registry.
 
-Os quatro jogos atuais continuam a usar HTML5 Canvas. A arquitetura passa também a aceitar builds **Godot Web** reais sem misturar o código do jogo com o código da plataforma.
+### Funcionalidades
 
-## Funcionalidades
-
-- Catálogo, pesquisa e categorias.
-- Favoritos, últimos jogados e recordes locais.
-- Controlos de teclado e toque para jogos Canvas.
-- PWA e cache offline do núcleo 2D.
-- `Game Registry V2` com runtimes `canvas` e `godot-web`.
-- Launcher dedicado `play.html` para jogos 3D.
-- Fullscreen, reinício, favoritos e deep links para jogos Web.
-- Validação de paths: builds Godot só podem ser carregadas de `games-web/<id>/`.
-- Deploy automático para GitHub Pages.
+- catálogo, pesquisa e categorias;
+- favoritos, histórico e recordes locais;
+- teclado e controlos táteis;
+- launcher dedicado para jogos 3D;
+- fullscreen para builds Web;
+- PWA e shell offline;
+- layout responsivo;
+- deep links de jogos;
+- CI/CD e deploy automático no GitHub Pages.
 
 ## Arquitetura
 
 ```text
-pixel-vault-classic-games/
-├── index.html
-├── play.html
-├── manifest.webmanifest
-├── sw.js
-├── assets/
-│   ├── css/styles.css
-│   └── js/
-│       ├── app.js
-│       ├── player.js
-│       ├── catalog.js
-│       ├── core/
-│       └── games/               # jogos Canvas
-├── games-web/                   # builds Godot Web
-│   └── README.md
-├── scripts/
-├── tests/
-└── .github/workflows/
+index.html                 catálogo/launcher 2D
+play.html                  launcher 3D
+assets/js/catalog.js       Game Registry
+assets/js/core/            input, storage, segurança, GameHost
+assets/js/games/           jogos Canvas
+games-web/<game-id>/       builds 3D Web
+scripts/                   gates de build e segurança
+.github/workflows/         CI e deploy Pages
 ```
 
-## Game Registry V2
+## Adicionar um jogo Canvas
 
-Cada entrada em `assets/js/catalog.js` declara o runtime.
+1. Criar `assets/js/games/<id>.js`.
+2. Exportar `createGame({ width, height })`.
+3. A instância deve implementar `update`, `render` e `reset`.
+4. Registar o jogo em `assets/js/catalog.js` com runtime `canvas`.
+5. Executar `npm run verify`.
 
-### Canvas
+## Adicionar um jogo Godot Web
 
-```js
-{
-  id: 'snake',
-  runtime: RUNTIMES.CANVAS,
-  engine: 'HTML5 Canvas',
-  module: './games/snake.js'
-}
-```
+1. Exportar uma build Web para `games-web/<game-id>/`.
+2. A entrada deve ser `games-web/<game-id>/index.html`.
+3. Registar o jogo com runtime `godot-web`.
+4. Rever a origem e o conteúdo da build antes de publicar.
+5. Executar `npm run verify`.
 
-### Godot Web
+Não incluir ROMs, BIOS, assets comerciais sem licença, executáveis nativos ou scripts de sistema.
 
-```js
-{
-  id: 'classic-snake-3d',
-  title: 'Classic Snake 3D',
-  category: 'arcade',
-  year: 2026,
-  icon: '◆',
-  runtime: RUNTIMES.GODOT_WEB,
-  engine: 'Godot 4 Web',
-  entry: './games-web/classic-snake-3d/index.html',
-  help: 'Setas/WASD para controlar.',
-  colors: ['#123456', '#19d8ff']
-}
-```
-
-O launcher não aceita URLs externas nem `../`. A build tem de pertencer ao próprio Pixel Vault.
-
-## Integrar um jogo Godot 3D
-
-1. No Godot, preparar uma exportação **Web** compatível com o browser.
-2. Colocar todos os ficheiros exportados em `games-web/<id>/`.
-3. Garantir que existe `games-web/<id>/index.html`.
-4. Adicionar a entrada `RUNTIMES.GODOT_WEB` ao catálogo.
-5. Executar:
-
-```bash
-npm test
-npm run build
-```
-
-6. Fazer push para `main`. O workflow publica automaticamente a build.
-
-As instruções detalhadas estão em `games-web/README.md`.
-
-## Testar localmente
+## Validação local
 
 Requer Node.js 22 ou superior.
 
 ```bash
 npm ci
-npm test
-npm run build
+npm run verify
 npm run serve
 ```
 
-Abrir `http://127.0.0.1:4173`.
+A página local fica em `http://127.0.0.1:4173`.
 
-## Segurança e manutenção
+## Hardening V1
 
-- CSP no catálogo e no launcher.
-- Zero dependências npm de runtime.
-- Sem trackers, anúncios ou backend obrigatório.
-- Estado local em `localStorage`.
-- Builds 3D não são pré-carregadas pelo Service Worker para evitar caches grandes ou desatualizados.
-- ROMs, BIOS e assets comerciais não devem ser adicionados sem licença de redistribuição.
+- CSP restritiva e sem scripts inline.
+- Validação central de IDs, textos, cores e paths.
+- Estado local sanitizado, limitado e migrado da V0.x.
+- Runtime Canvas com validação de contrato e error boundary.
+- Launcher 3D com preflight same-origin e `iframe sandbox`.
+- Service Worker limitado a uma allowlist explícita.
+- GitHub Actions fixadas por SHA completo.
+- Dependabot, vulnerability alerts e security fixes ativos.
+- CI bloqueia sinks JS perigosos e artefactos 3D incompatíveis.
 
-## Roadmap
+Ver `SECURITY.md` para o modelo de confiança e limitações.
 
-- **V0.2.x** — integrar o primeiro jogo 3D real e afinar UX do launcher.
-- **V0.3** — Gamepad API e remapeamento.
-- **V0.4** — áudio comum, conquistas e estatísticas.
-- **V0.5** — editor/manifesto de catálogo e mais jogos.
-- **V1.0** — catálogo extensível estabilizado com testes E2E.
+## Publicação
+
+O workflow de Pages executa testes, gates de segurança e build antes do deploy. A branch `main` é a fonte da página pública.
+
+## Licença e conteúdo
+
+O código da plataforma é MIT. Jogos e assets adicionados ao catálogo devem ser originais, public domain, open-source compatível ou ter licença de redistribuição adequada.

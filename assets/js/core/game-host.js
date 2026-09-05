@@ -1,5 +1,12 @@
 import { InputManager } from './input.js';
 
+function assertGameContract(game, gameId) {
+  if (!game || typeof game !== 'object') throw new Error(`Instância inválida: ${gameId}`);
+  for (const method of ['update', 'render', 'reset']) {
+    if (typeof game[method] !== 'function') throw new Error(`Contrato inválido (${method}): ${gameId}`);
+  }
+}
+
 export class GameHost {
   #canvas;
   #ctx;
@@ -9,6 +16,7 @@ export class GameHost {
   #last = 0;
   #paused = false;
   #hooks;
+  #loadToken = 0;
 
   constructor(canvas, hooks = {}) {
     if (!(canvas instanceof HTMLCanvasElement)) throw new TypeError('Canvas inválido');
@@ -20,10 +28,17 @@ export class GameHost {
   }
 
   async load(modulePath, gameId) {
-    this.destroy();
+    const token = ++this.#loadToken;
+    this.#teardown();
     const module = await import(modulePath);
+    if (token !== this.#loadToken) return;
     if (typeof module.createGame !== 'function') throw new Error(`Módulo de jogo inválido: ${gameId}`);
-    this.#game = module.createGame({ width: this.#canvas.width, height: this.#canvas.height });
+
+    const game = module.createGame({ width: this.#canvas.width, height: this.#canvas.height });
+    assertGameContract(game, gameId);
+    if (token !== this.#loadToken) return;
+
+    this.#game = game;
     this.#input.attach();
     this.#last = performance.now();
     this.#paused = false;
@@ -33,23 +48,41 @@ export class GameHost {
 
   #tick = (now) => {
     if (!this.#game) return;
-    const dt = Math.min((now - this.#last) / 1000, 0.05);
-    this.#last = now;
-    if (!this.#paused) {
-      const event = this.#game.update(dt, this.#input);
-      if (event?.score !== undefined) this.#hooks.onScore?.(event.score);
-      if (event?.status) this.#hooks.onStatus?.(event.status);
+    try {
+      const dt = Math.min(Math.max((now - this.#last) / 1000, 0), 0.05);
+      this.#last = now;
+      if (!this.#paused) {
+        const event = this.#game.update(dt, this.#input);
+        if (event?.score !== undefined) this.#hooks.onScore?.(event.score);
+        if (event?.status) this.#hooks.onStatus?.(String(event.status).slice(0, 48));
+      }
+      this.#game.render(this.#ctx);
+      this.#raf = requestAnimationFrame(this.#tick);
+    } catch (error) {
+      this.#fail(error);
     }
-    this.#game.render(this.#ctx);
-    this.#raf = requestAnimationFrame(this.#tick);
   };
+
+  #fail(error) {
+    console.error('Falha no runtime do jogo:', error);
+    if (this.#raf) cancelAnimationFrame(this.#raf);
+    this.#raf = 0;
+    this.#input.detach();
+    this.#game = null;
+    this.#hooks.onStatus?.('ERRO NO JOGO');
+    this.#hooks.onError?.(error);
+  }
 
   restart() {
     if (!this.#game) return;
-    this.#game.reset();
-    this.#input.clear();
-    this.#hooks.onScore?.(0);
-    this.#hooks.onStatus?.('A JOGAR');
+    try {
+      this.#game.reset();
+      this.#input.clear();
+      this.#hooks.onScore?.(0);
+      this.#hooks.onStatus?.('A JOGAR');
+    } catch (error) {
+      this.#fail(error);
+    }
   }
 
   setTouchKey(code, pressed) {
@@ -57,15 +90,23 @@ export class GameHost {
   }
 
   pause(value = true) {
-    this.#paused = value;
-    this.#hooks.onStatus?.(value ? 'PAUSA' : 'A JOGAR');
+    if (!this.#game) return;
+    this.#paused = Boolean(value);
+    this.#input.clear();
+    this.#hooks.onStatus?.(this.#paused ? 'PAUSA' : 'A JOGAR');
   }
 
-  destroy() {
+  #teardown() {
     if (this.#raf) cancelAnimationFrame(this.#raf);
     this.#raf = 0;
     this.#input.detach();
     this.#game = null;
+    this.#paused = false;
     this.#ctx.clearRect(0, 0, this.#canvas.width, this.#canvas.height);
+  }
+
+  destroy() {
+    this.#loadToken += 1;
+    this.#teardown();
   }
 }

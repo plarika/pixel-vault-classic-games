@@ -1,58 +1,124 @@
-const PREFIX = 'pixel-vault:';
+const KEY = 'pixel-vault:v1:state';
+const LEGACY = 'pixel-vault:';
+const ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const MAX_SCORE = 1_000_000_000;
+let memory = { version: 1, favorites: [], recent: [], best: {} };
 
-function readJson(key, fallback) {
+function safeId(value) {
+  return typeof value === 'string' && value.length <= 64 && ID.test(value) ? value : '';
+}
+
+function uniqueIds(values, limit) {
+  if (!Array.isArray(values)) return [];
+  const out = [];
+  const seen = new Set();
+  for (const value of values) {
+    const id = safeId(value);
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    out.push(id);
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
+function safeScore(value) {
+  const score = Number(value);
+  return Number.isFinite(score) ? Math.min(MAX_SCORE, Math.max(0, Math.floor(score))) : 0;
+}
+
+export function sanitizeState(value) {
+  const state = { version: 1, favorites: [], recent: [], best: {} };
+  if (!value || typeof value !== 'object') return state;
+  state.favorites = uniqueIds(value.favorites, 128);
+  state.recent = uniqueIds(value.recent, 24);
+  if (value.best && typeof value.best === 'object' && !Array.isArray(value.best)) {
+    let count = 0;
+    for (const [rawId, rawScore] of Object.entries(value.best)) {
+      const id = safeId(rawId);
+      if (!id) continue;
+      state.best[id] = safeScore(rawScore);
+      if (++count >= 256) break;
+    }
+  }
+  return state;
+}
+
+function storage() {
   try {
-    const raw = localStorage.getItem(PREFIX + key);
-    return raw === null ? fallback : JSON.parse(raw);
+    if (typeof localStorage === 'undefined') return null;
+    const probe = `${KEY}:probe`;
+    localStorage.setItem(probe, '1');
+    localStorage.removeItem(probe);
+    return localStorage;
   } catch {
-    return fallback;
+    return null;
   }
 }
 
-function writeJson(key, value) {
+function migrate(store) {
+  const state = { version: 1, favorites: [], recent: [], best: {} };
   try {
-    localStorage.setItem(PREFIX + key, JSON.stringify(value));
+    state.favorites = JSON.parse(store.getItem(`${LEGACY}favorites`) ?? '[]');
+    state.recent = JSON.parse(store.getItem(`${LEGACY}recent`) ?? '[]');
+    for (let i = 0; i < store.length; i += 1) {
+      const key = store.key(i);
+      if (!key?.startsWith(`${LEGACY}best:`)) continue;
+      const id = safeId(key.slice(`${LEGACY}best:`.length));
+      if (id) state.best[id] = JSON.parse(store.getItem(key) ?? '0');
+    }
+  } catch {
+    return sanitizeState(null);
+  }
+  return sanitizeState(state);
+}
+
+function load() {
+  const store = storage();
+  if (!store) return sanitizeState(memory);
+  try {
+    const raw = store.getItem(KEY);
+    if (raw) return sanitizeState(JSON.parse(raw));
+    const state = migrate(store);
+    store.setItem(KEY, JSON.stringify(state));
+    return state;
+  } catch {
+    return sanitizeState(null);
+  }
+}
+
+function save(state) {
+  memory = sanitizeState(state);
+  const store = storage();
+  if (!store) return false;
+  try {
+    store.setItem(KEY, JSON.stringify(memory));
     return true;
   } catch {
     return false;
   }
 }
 
-export function getFavorites() {
-  const value = readJson('favorites', []);
-  return Array.isArray(value) ? value.filter((id) => typeof id === 'string') : [];
-}
+export function getFavorites() { return [...load().favorites]; }
+export function getRecent() { return [...load().recent]; }
+export function isFavorite(id) { const x = safeId(id); return x ? load().favorites.includes(x) : false; }
 
 export function toggleFavorite(id) {
-  const set = new Set(getFavorites());
-  if (set.has(id)) set.delete(id); else set.add(id);
-  writeJson('favorites', [...set]);
-  return set.has(id);
-}
-
-export function isFavorite(id) {
-  return getFavorites().includes(id);
+  const x = safeId(id); if (!x) return false;
+  const state = load(); const set = new Set(state.favorites);
+  if (set.has(x)) set.delete(x); else set.add(x);
+  state.favorites = [...set].slice(-128); save(state); return set.has(x);
 }
 
 export function recordPlayed(id) {
-  const current = getRecent().filter((value) => value !== id);
-  current.unshift(id);
-  writeJson('recent', current.slice(0, 12));
+  const x = safeId(id); if (!x) return false;
+  const state = load(); state.recent = [x, ...state.recent.filter((v) => v !== x)].slice(0, 24);
+  return save(state);
 }
 
-export function getRecent() {
-  const value = readJson('recent', []);
-  return Array.isArray(value) ? value.filter((id) => typeof id === 'string') : [];
-}
-
-export function getBestScore(id) {
-  const value = Number(readJson(`best:${id}`, 0));
-  return Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0;
-}
-
+export function getBestScore(id) { const x = safeId(id); return x ? safeScore(load().best[x] ?? 0) : 0; }
 export function saveBestScore(id, score) {
-  const safeScore = Number.isFinite(score) ? Math.max(0, Math.floor(score)) : 0;
-  const previous = getBestScore(id);
-  if (safeScore > previous) writeJson(`best:${id}`, safeScore);
-  return Math.max(previous, safeScore);
+  const x = safeId(id); if (!x) return 0;
+  const state = load(); const best = Math.max(safeScore(state.best[x] ?? 0), safeScore(score));
+  state.best[x] = best; save(state); return best;
 }

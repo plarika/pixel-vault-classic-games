@@ -1,4 +1,5 @@
 import { findGame, isCanvasGame, isGodotWebGame, validateCatalog } from './catalog.js';
+import { normalizeGameId } from './core/security.js';
 import { isFavorite, recordPlayed, toggleFavorite } from './core/storage.js';
 
 validateCatalog();
@@ -16,14 +17,17 @@ const ui = {
   fullscreen: document.querySelector('#fullscreenGame')
 };
 
-const id = new URLSearchParams(location.search).get('id') ?? '';
-const game = /^[a-z0-9-]+$/.test(id) ? findGame(id) : null;
+const rawId = new URLSearchParams(location.search).get('id') ?? '';
+const id = normalizeGameId(rawId);
+const game = id ? findGame(id) : null;
 
 function fail(message) {
   ui.status.textContent = 'INDISPONÍVEL';
   ui.error.hidden = false;
   ui.error.textContent = message;
   ui.stage.hidden = true;
+  ui.reload.disabled = true;
+  ui.fullscreen.disabled = true;
 }
 
 function syncFavorite() {
@@ -33,28 +37,77 @@ function syncFavorite() {
   ui.favorite.textContent = active ? '♥ Favorito' : '♡ Favorito';
 }
 
-if (!game) {
-  fail('Jogo não encontrado no catálogo.');
-} else if (isCanvasGame(game)) {
-  window.location.replace(`./?play=${encodeURIComponent(game.id)}`);
-} else if (!isGodotWebGame(game)) {
-  fail('Runtime de jogo não suportado.');
-} else {
+function safeEntryUrl(targetGame) {
+  const url = new URL(targetGame.entry, document.baseURI);
+  const expected = new URL(`./games-web/${targetGame.id}/`, document.baseURI);
+  if (url.origin !== location.origin) return null;
+  if (!url.pathname.startsWith(expected.pathname) || !url.pathname.endsWith('/index.html')) return null;
+  return url;
+}
+
+async function loadGodotBuild(targetGame, restarting = false) {
+  const entryUrl = safeEntryUrl(targetGame);
+  if (!entryUrl) {
+    fail('A build do jogo não pertence ao Pixel Vault.');
+    return;
+  }
+
+  ui.error.hidden = true;
+  ui.stage.hidden = false;
+  ui.status.textContent = restarting ? 'A REINICIAR' : 'A VERIFICAR';
+
+  let response;
+  try {
+    response = await fetch(entryUrl.href, {
+      cache: 'no-store',
+      credentials: 'same-origin',
+      redirect: 'error'
+    });
+  } catch {
+    fail('Não foi possível verificar a build do jogo.');
+    return;
+  }
+
+  const contentType = response.headers.get('content-type') ?? '';
+  if (!response.ok || !contentType.toLowerCase().includes('text/html')) {
+    fail('A build Web não está disponível ou não é HTML válido.');
+    return;
+  }
+
+  ui.status.textContent = 'A CARREGAR';
+  ui.reload.disabled = false;
+  ui.fullscreen.disabled = false;
+  ui.frame.addEventListener('load', () => {
+    ui.status.textContent = 'A JOGAR';
+  }, { once: true });
+  ui.frame.addEventListener('error', () => {
+    fail('Falha ao carregar a build Web.');
+  }, { once: true });
+  ui.frame.src = entryUrl.href;
+}
+
+async function boot() {
+  if (!game) {
+    fail('Jogo não encontrado no catálogo.');
+    ui.favorite.disabled = true;
+    return;
+  }
+  if (isCanvasGame(game)) {
+    window.location.replace(`./?play=${encodeURIComponent(game.id)}`);
+    return;
+  }
+  if (!isGodotWebGame(game)) {
+    fail('Runtime de jogo não suportado.');
+    return;
+  }
+
   document.title = `${game.title} — Pixel Vault`;
   ui.title.textContent = game.title;
   ui.meta.textContent = `${game.category.toUpperCase()} · ${game.year} · ${game.engine.toUpperCase()}`;
   ui.help.textContent = game.help;
-  ui.status.textContent = 'A CARREGAR';
   syncFavorite();
   recordPlayed(game.id);
-
-  const entryUrl = new URL(game.entry, document.baseURI);
-  if (entryUrl.origin !== location.origin) {
-    fail('A build do jogo não pertence ao Pixel Vault.');
-  } else {
-    ui.frame.src = entryUrl.href;
-    ui.frame.addEventListener('load', () => { ui.status.textContent = 'A JOGAR'; }, { once: true });
-  }
+  await loadGodotBuild(game);
 }
 
 ui.favorite.addEventListener('click', () => {
@@ -64,9 +117,8 @@ ui.favorite.addEventListener('click', () => {
 });
 
 ui.reload.addEventListener('click', () => {
-  if (!game || !isGodotWebGame(game) || !ui.frame.src) return;
-  ui.status.textContent = 'A REINICIAR';
-  ui.frame.src = ui.frame.src;
+  if (!game || !isGodotWebGame(game)) return;
+  void loadGodotBuild(game, true);
 });
 
 ui.fullscreen.addEventListener('click', async () => {
@@ -76,5 +128,8 @@ ui.fullscreen.addEventListener('click', async () => {
     else await ui.stage.requestFullscreen();
   } catch (error) {
     console.warn('Fullscreen indisponível:', error);
+    ui.status.textContent = 'FULLSCREEN INDISPONÍVEL';
   }
 });
+
+void boot();
